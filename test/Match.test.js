@@ -61,4 +61,45 @@ describe('Match', () => {
     assert.throws(() => match.recordResult(-1, 0), RangeError)
     assert.throws(() => match.recordResult(1.5, 0), RangeError)
   })
+
+  it('returns the home participant as winner when home scores more', () => {
+    const match = new Match(aik, ifk)
+
+    match.recordResult(3, 1)
+
+    assert.equal(match.getWinner(), aik)
+    assert.equal(match.getLoser(), ifk)
+  })
+
+  it('returns the away participant as winner when away scores more', () => {
+    const match = new Match(aik, ifk)
+
+    match.recordResult(0, 2)
+
+    assert.equal(match.getWinner(), ifk)
+    assert.equal(match.getLoser(), aik)
+  })
+
+  it('is a draw with no winner or loser when scores are equal', () => {
+    const match = new Match(aik, ifk)
+
+    match.recordResult(1, 1)
+
+    assert.equal(match.isDraw(), true)
+    assert.equal(match.getWinner(), null)
+    assert.equal(match.getLoser(), null)
+  })
+
+  it('is not a draw before it has been played', () => {
+    const match = new Match(aik, ifk)
+
+    assert.equal(match.isDraw(), false)
+  })
+
+  it('throws when asking for winner or loser before it has been played', () => {
+    const match = new Match(aik, ifk)
+
+    assert.throws(() => match.getWinner(), Error)
+    assert.throws(() => match.getLoser(), Error)
+  })
 })
