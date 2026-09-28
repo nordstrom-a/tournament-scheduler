@@ -6,6 +6,8 @@ import { Participant } from './Participant.js'
 export class Match {
   #homeParticipant
   #awayParticipant
+  #homeScore = null
+  #awayScore = null
 
   /**
    * @param {Participant} homeParticipant - The participant listed first.
@@ -35,6 +37,41 @@ export class Match {
     return this.#awayParticipant
   }
 
+  /**
+   * @returns {number|null} The home score, or null if the match is not played.
+   */
+  getHomeScore() {
+    return this.#homeScore
+  }
+
+  /**
+   * @returns {number|null} The away score, or null if the match is not played.
+   */
+  getAwayScore() {
+    return this.#awayScore
+  }
+
+  /**
+   * @returns {boolean} True if a result has been recorded.
+   */
+  isPlayed() {
+    return this.#homeScore !== null
+  }
+
+  /**
+   * Records the final score. Calling it again overwrites the previous result.
+   * 
+   * @param {number} homeScore - Non-negative integer.
+   * @param {number} awayScore - Non-negative integer.
+   * @throws {RangeError} If a score is not a non-negative integer.
+   */
+  recordResult(homeScore, awayScore) {
+    this.#assertValidScore(homeScore)
+    this.#assertValidScore(awayScore)
+    this.#homeScore = homeScore
+    this.#awayScore = awayScore
+  }
+
   #assertIsParticipant(participant) {
     if (!(participant instanceof Participant)) {
       throw new TypeError('Match requires two Participant instances')
@@ -44,6 +81,12 @@ export class Match {
   #assertDifferentParticipants(homeParticipant, awayParticipant) {
     if (homeParticipant === awayParticipant) {
       throw new Error('A participant cannot play against itself')
+    }
+  }
+
+  #assertValidScore(score) {
+    if (!Number.isInteger(score) || score < 0) {
+      throw new RangeError('Score must be a non-negative integer')
     }
   }
 }
