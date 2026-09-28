@@ -1,0 +1,17 @@
+{
+  "name": "tournament-scheduler",
+  "version": "0.1.0",
+  "description": "Framework-agnostic tournament scheduling: round-robin and single-elimination with seeding, byes and standings.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": "./src/index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["tournament", "round-robin", "bracket", "single-elimination", "scheduler"],
+  "author": "Anton Nordström",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}
