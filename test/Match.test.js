@@ -26,4 +26,39 @@ describe('Match', () => {
   it('throws when a participant plays against itself', () => {
     assert.throws(() => new Match(aik, aik), Error)
   })
+
+  it('is not played and has no scores when created', () => {
+    const match = new Match(aik, ifk)
+
+    assert.equal(match.isPlayed(), false)
+    assert.equal(match.getHomeScore(), null)
+    assert.equal(match.getAwayScore(), null)
+  })
+
+  it('stores a recorded result and becomes played', () => {
+    const match = new Match(aik, ifk)
+
+    match.recordResult(2, 1)
+
+    assert.equal(match.isPlayed(), true)
+    assert.equal(match.getHomeScore(), 2)
+    assert.equal(match.getAwayScore(), 1)
+  })
+
+  it('overwrites the result when recorded again', () => {
+    const match = new Match(aik, ifk)
+
+    match.recordResult(2, 1)
+    match.recordResult(0, 0)
+
+    assert.equal(match.getHomeScore(), 0)
+    assert.equal(match.getAwayScore(), 0)
+  })
+
+  it('throws RangeError for negative or non-integer scores', () => {
+    const match = new Match(aik, ifk)
+
+    assert.throws(() => match.recordResult(-1, 0), RangeError)
+    assert.throws(() => match.recordResult(1.5, 0), RangeError)
+  })
 })
