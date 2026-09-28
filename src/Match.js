@@ -91,6 +91,18 @@ export class Match {
     return this.#homeScore > this.#awayScore ? this.#homeParticipant : this.#awayParticipant
   }
 
+  /**
+   * @returns {Participant|null} The loser, or null if the match was a draw.
+   * @throws {Error} If the match has not been played.
+   */
+  getLoser() {
+    const winner = this.getWinner()
+    if (winner === null) {
+      return null
+    }
+    return winner === this.#homeParticipant ? this.#awayParticipant : this.#homeParticipant
+  }
+
   #assertIsParticipant(participant) {
     if (!(participant instanceof Participant)) {
       throw new TypeError('Match requires two Participant instances')
