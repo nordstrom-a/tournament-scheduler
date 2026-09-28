@@ -72,6 +72,25 @@ export class Match {
     this.#awayScore = awayScore
   }
 
+  /**
+   * @returns {boolean} True if the match is played and both scores are equal.
+   */
+  isDraw() {
+    return this.isPlayed() && this.#homeScore === this.#awayScore
+  }
+
+  /**
+   * @returns {Participant|null} The winner, or null if the match was a draw.
+   * @throws {Error} If the match has not been played.
+   */
+  getWinner() {
+    this.#assertPlayed()
+    if (this.isDraw()) {
+      return null
+    }
+    return this.#homeScore > this.#awayScore ? this.#homeParticipant : this.#awayParticipant
+  }
+
   #assertIsParticipant(participant) {
     if (!(participant instanceof Participant)) {
       throw new TypeError('Match requires two Participant instances')
@@ -87,6 +106,12 @@ export class Match {
   #assertValidScore(score) {
     if (!Number.isInteger(score) || score < 0) {
       throw new RangeError('Score must be a non-negative integer')
+    }
+  }
+
+  #assertPlayed() {
+    if (!this.isPlayed()) {
+      throw new Error('Match has not been played yet')
     }
   }
 }
