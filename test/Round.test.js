@@ -59,6 +59,6 @@ describe('Round', () => {
 
   it('throws RangeError when the number is not a positive integer', () => {
     assert.throws(() => new Round(0, []), RangeError)
-    assert.throws(() => new Round(1.5, [], RangeError))
+    assert.throws(() => new Round(1.5, []), RangeError)
   })
 })
