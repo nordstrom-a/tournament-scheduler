@@ -7,13 +7,15 @@ import { Round } from './Round.js'
  */
 export class RoundRobinScheduler {
   /**
+   * With an odd number of participants, one participant has a bye in each round.
+   *
    * @param {Participant[]} participants - At least two participants.
    * @returns {Round[]} The rounds in the order they should be played.
    * @throws {RangeError} If there are fewer than two participants.
    */
   createRounds(participants) {
     this.#assertEnoughParticipants(participants)
-    const rotation = [...participants]
+    const rotation = this.#createRotation(participants)
     const roundCount = rotation.length - 1
     const rounds = []
 
@@ -24,14 +26,32 @@ export class RoundRobinScheduler {
     return rounds
   }
 
+  #createRotation(participants) {
+    const rotation = [...participants]
+    if (rotation.length % 2 !== 0) {
+      rotation.push(null)
+    }
+    return rotation
+  }
+
   #createRound(roundNumber, rotation) {
     const matches = []
+    const participantsWithBye = []
     const lastIndex = rotation.length - 1
 
     for (let index = 0; index < rotation.length / 2; index++) {
-      matches.push(new Match(rotation[index], rotation[lastIndex - index]))
+      const home = rotation[index]
+      const away = rotation[lastIndex - index]
+
+      if (home === null) {
+        participantsWithBye.push(away)
+      } else if (away === null) {
+        participantsWithBye.push(home)
+      } else {
+        matches.push(new Match(home, away))
+      }
     }
-    return new Round(roundNumber, matches)
+    return new Round(roundNumber, matches, participantsWithBye)
   }
 
   #rotate(rotation) {
