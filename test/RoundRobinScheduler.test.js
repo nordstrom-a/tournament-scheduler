@@ -55,6 +55,34 @@ describe('RoundRobinScheduler', () => {
     })
   })
 
+  describe('with an odd number of participants', () => {
+    it('creates n rounds with one bye each', () => {
+      const rounds = new RoundRobinScheduler().createRounds(createParticipants(5))
+
+      assert.equal(rounds.length, 5)
+      for (const round of rounds) {
+        assert.equal(round.getMatches().length, 2)
+        assert.equal(round.getParticipantsWithBye().length, 1)
+      }
+    })
+
+    it('gives every participant exactly one bye', () => {
+      const participants = createParticipants(5)
+      const rounds = new RoundRobinScheduler().createRounds(participants)
+      const participantsWithBye = rounds.flatMap(round => round.getParticipantsWithBye())
+
+      assert.equal(new Set(participantsWithBye).size, participants.length)
+    })
+
+    it('pairs every participant with every other participant exactly once', () => {
+      const rounds = new RoundRobinScheduler().createRounds(createParticipants(5))
+      const pairingKeys = getAllMatches(rounds).map(toPairingKey)
+
+      assert.equal(pairingKeys.length, 10)
+      assert.equal(new Set(pairingKeys).size, 10)
+    })
+  })
+
   it('does not change the order of the given participant array', () => {
     const participants = createParticipants(4)
     const originalOrder = [...participants]
