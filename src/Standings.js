@@ -7,14 +7,21 @@ import { StandingsEntry } from './StandingsEntry.js'
  */
 export class Standings {
   #entries = new Map()
-  #pointsForWin = 3
-  #pointsForDraw = 1
-  #pointsForLoss = 0
+  #pointsForWin
+  #pointsForDraw
+  #pointsForLoss
 
   /**
    * @param {Participant[]} participants - The participants included in the table.
+   * @param {object} [pointSystem] - Table points awarded per match outcome.
+   * @param {number} [pointSystem.win=3] - Points for a win.
+   * @param {number} [pointSystem.draw=1] - Points for a draw.
+   * @param {number} [pointSystem.loss=0] - Points for a loss.
    */
-  constructor(participants) {
+  constructor(participants, { win = 3, draw = 1, loss = 0 } = {}) {
+    this.#pointsForWin = win
+    this.#pointsForDraw = draw
+    this.#pointsForLoss = loss
     for (const participant of participants) {
       this.#entries.set(participant, new StandingsEntry(participant))
     }
