@@ -33,10 +33,13 @@ export class Standings {
   }
 
   /**
-   * @returns {StandingsEntry[]} One entry per participant.
+   * Entries are ordered by points, then score difference, then total scored
+   * and finally by name so the order is always predictable.
+   *
+   * @returns {StandingsEntry[]} One entry per participant, best placed first.
    */
   getEntries() {
-    return [...this.#entries.values()]
+    return [...this.#entries.values()].sort((first, second) => this.#compareEntries(first, second))
   }
 
   #assertRecordable(match) {
@@ -63,5 +66,12 @@ export class Standings {
       return this.#pointsForWin
     }
     return this.#pointsForLoss
+  }
+
+  #compareEntries(first, second) {
+    return second.getPoints() - first.getPoints() ||
+      second.getScoreDifference() - first.getScoreDifference() ||
+      second.getScored() - first.getScored() ||
+      first.getParticipant().getName().localeCompare(second.getParticipant().getName())
   }
 }
