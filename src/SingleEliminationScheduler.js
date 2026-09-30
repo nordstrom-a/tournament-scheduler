@@ -15,15 +15,21 @@ export class SingleEliminationScheduler {
   createFirstRound(participants) {
     this.#assertEnoughParticipants(participants)
     const orderedParticipants = this.#orderBySeed(participants)
-    const seedOrder = this.#createSeedOrder(participants.length)
+    const seedOrder = this.#createSeedOrder(this.#calculateBracketSize(participants.length))
     const matches = []
+    const participantsWithBye = []
 
     for (let index = 0; index < seedOrder.length; index += 2) {
       const home = orderedParticipants[seedOrder[index] - 1]
       const away = orderedParticipants[seedOrder[index + 1] - 1]
-      matches.push(new Match(home, away))
+
+      if (away === undefined) {
+        participantsWithBye.push(home)
+      } else {
+        matches.push(new Match(home, away))
+      }
     }
-    return new Round(1, matches)
+    return new Round(1, matches, participantsWithBye)
   }
 
   #orderBySeed(participants) {
@@ -32,6 +38,14 @@ export class SingleEliminationScheduler {
       .sort((first, second) => first.getSeed() - second.getSeed())
     const unseeded = participants.filter(participant => !participant.isSeeded())
     return [...seeded, ...unseeded]
+  }
+
+  #calculateBracketSize(participantCount) {
+    let bracketSize = 2
+    while (bracketSize < participantCount) {
+      bracketSize *= 2
+    }
+    return bracketSize
   }
 
   #createSeedOrder(bracketSize) {
