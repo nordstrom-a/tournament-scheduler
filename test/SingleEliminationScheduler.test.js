@@ -20,6 +20,12 @@ function getByeNames(round) {
   return round.getParticipantsWithBye().map(participant => participant.getName())
 }
 
+function letHomeParticipantsWin(round) {
+  for (const match of round.getMatches()) {
+    match.recordResult(1, 0)
+  }
+}
+
 describe('SingleEliminationScheduler', () => {
   describe('createFirstRound', () => {
     it('pairs eight seeds so the top two can only meet in the final', () => {
@@ -71,6 +77,64 @@ describe('SingleEliminationScheduler', () => {
 
     it('throws RangeError with fewer than two participants', () => {
       assert.throws(() => new SingleEliminationScheduler().createFirstRound(createSeededParticipants(1)), RangeError)
+    })
+  })
+
+  describe('createNextRound', () => {
+    it('pairs first round winners with the participants who had a bye', () => {
+      const scheduler = new SingleEliminationScheduler()
+      letHomeParticipantsWin(scheduler.createFirstRound(createSeededParticipants(6)))
+
+      const secondRound = scheduler.createNextRound()
+
+      assert.deepEqual(getPairings(secondRound), ['Seed 1 vs Seed 4', 'Seed 2 vs Seed 3'])
+      assert.deepEqual(getByeNames(secondRound), [])
+    })
+
+    it('numbers the round consecutively', () => {
+      const scheduler = new SingleEliminationScheduler()
+      letHomeParticipantsWin(scheduler.createFirstRound(createSeededParticipants(4)))
+
+      assert.equal(scheduler.createNextRound().getNumber(), 2)
+    })
+
+    it('reaches a single-match final after three rounds with eight participants', () => {
+      const scheduler = new SingleEliminationScheduler()
+      let round = scheduler.createFirstRound(createSeededParticipants(8))
+
+      while (round.getMatches().length > 1) {
+        letHomeParticipantsWin(round)
+        round = scheduler.createNextRound()
+      }
+
+      assert.equal(round.getNumber(), 3)
+      assert.deepEqual(getPairings(round), ['Seed 1 vs Seed 2'])
+    })
+
+    it('throws when no first round has been created', () => {
+      assert.throws(() => new SingleEliminationScheduler().createNextRound(), Error)
+    })
+
+    it('throws when a match in the current round is not played', () => {
+      const scheduler = new SingleEliminationScheduler()
+      scheduler.createFirstRound(createSeededParticipants(4))
+
+      assert.throws(() => scheduler.createNextRound(), Error)
+    })
+
+    it('throws when a match in the current round is a draw', () => {
+      const scheduler = new SingleEliminationScheduler()
+      const firstRound = scheduler.createFirstRound(createSeededParticipants(2))
+      firstRound.getMatches()[0].recordResult(1, 1)
+
+      assert.throws(() => scheduler.createNextRound(), Error)
+    })
+
+    it('throws when the final has already been created', () => {
+      const scheduler = new SingleEliminationScheduler()
+      letHomeParticipantsWin(scheduler.createFirstRound(createSeededParticipants(2)))
+
+      assert.throws(() => scheduler.createNextRound(), Error)
     })
   })
 })
