@@ -7,21 +7,31 @@ import { Round } from './Round.js'
  */
 export class SingleEliminationScheduler {
   /**
-   * @param {Participant[]} participants - At least two participants, listed from highest to lowest seed.
+   * @param {Participant[]} participants - At least two participants. Seeded participants are placed by seed,
+   * unseeded ones fill the remaining positions in the given order.
    * @returns {Round} The first round of the bracket.
    * @throws {RangeError} If there are fewer than two participants.
    */
   createFirstRound(participants) {
     this.#assertEnoughParticipants(participants)
+    const orderedParticipants = this.#orderBySeed(participants)
     const seedOrder = this.#createSeedOrder(participants.length)
     const matches = []
 
     for (let index = 0; index < seedOrder.length; index += 2) {
-      const home = participants[seedOrder[index] - 1]
-      const away = participants[seedOrder[index + 1] - 1]
+      const home = orderedParticipants[seedOrder[index] - 1]
+      const away = orderedParticipants[seedOrder[index + 1] - 1]
       matches.push(new Match(home, away))
     }
     return new Round(1, matches)
+  }
+
+  #orderBySeed(participants) {
+    const seeded = participants
+      .filter(participant => participant.isSeeded())
+      .sort((first, second) => first.getSeed() - second.getSeed())
+    const unseeded = participants.filter(participant => !participant.isSeeded())
+    return [...seeded, ...unseeded]
   }
 
   #createSeedOrder(bracketSize) {
