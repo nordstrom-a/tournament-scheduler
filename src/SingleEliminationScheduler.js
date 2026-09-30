@@ -6,6 +6,9 @@ import { Round } from './Round.js'
  * Creates a knockout bracket where the loser of each match is eliminated.
  */
 export class SingleEliminationScheduler {
+  #slots = []
+  #roundNumber = 0
+
   /**
    * @param {Participant[]} participants - At least two participants. Seeded participants are placed by seed,
    * unseeded ones fill the remaining positions in the given order.
@@ -16,20 +19,15 @@ export class SingleEliminationScheduler {
     this.#assertEnoughParticipants(participants)
     const orderedParticipants = this.#orderBySeed(participants)
     const seedOrder = this.#createSeedOrder(this.#calculateBracketSize(participants.length))
-    const matches = []
-    const participantsWithBye = []
+    this.#slots = []
 
     for (let index = 0; index < seedOrder.length; index += 2) {
       const home = orderedParticipants[seedOrder[index] - 1]
       const away = orderedParticipants[seedOrder[index + 1] - 1]
-
-      if (away === undefined) {
-        participantsWithBye.push(home)
-      } else {
-        matches.push(new Match(home, away))
-      }
+      this.#slots.push(away === undefined ? home : new Match(home, away))
     }
-    return new Round(1, matches, participantsWithBye)
+    this.#roundNumber = 1
+    return this.#createRoundFromSlots()
   }
 
   #orderBySeed(participants) {
@@ -55,6 +53,12 @@ export class SingleEliminationScheduler {
       seedOrder = seedOrder.flatMap(seed => [seed, seedSum - seed])
     }
     return seedOrder
+  }
+
+  #createRoundFromSlots() {
+    const matches = this.#slots.filter(slot => slot instanceof Match)
+    const participantsWithBye = this.#slots.filter(slot => slot instanceof Participant)
+    return new Round(this.#roundNumber, matches, participantsWithBye)
   }
 
   #assertEnoughParticipants(participants) {
