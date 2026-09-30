@@ -30,6 +30,47 @@ export class SingleEliminationScheduler {
     return this.#createRoundFromSlots()
   }
 
+  /**
+   * Creates the next round by pairing the winners and bye participants of the current round.
+   *
+   * @returns {Round} The next round.
+   * @throws {Error} If no first round exists, the final is already created,
+   * or a match in the current round is unplayed or drawn.
+   */
+  createNextRound() {
+    this.#assertCanCreateNextRound()
+    const advancing = this.#slots.map(slot => this.#getAdvancingParticipant(slot))
+    this.#slots = []
+
+    for (let index = 0; index < advancing.length; index += 2) {
+      this.#slots.push(new Match(advancing[index], advancing[index + 1]))
+    }
+    this.#roundNumber++
+    return this.#createRoundFromSlots()
+  }
+
+  #assertCanCreateNextRound() {
+    if (this.#roundNumber === 0) {
+      throw new Error('The first round must be created before the next one')
+    }
+    if (this.#slots.length === 1) {
+      throw new Error('The final has already been created')
+    }
+  }
+
+  #getAdvancingParticipant(slot) {
+    if (slot instanceof Participant) {
+      return slot
+    }
+    if (!slot.isPlayed()) {
+      throw new Error('All matches must be played before the next round is created')
+    }
+    if (slot.isDraw()) {
+      throw new Error('An elimination match cannot end in a draw')
+    }
+    return slot.getWinner()
+  }
+
   #orderBySeed(participants) {
     const seeded = participants
       .filter(participant => participant.isSeeded())
