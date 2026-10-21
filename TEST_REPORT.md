@@ -16,15 +16,17 @@ npm test
 
 I chose automated unit tests because the module has no user interface and its most important behaviour is rule-based: every participant must meet every other participant exactly once, byes must go to the top seeds, the table must be sorted in the right order. Rules like these are easy to state as exact expected values, and the tests can be re-run after every small change. That was useful, because the tests were run before every commit, and the refactoring of `SingleEliminationScheduler` (keeping track of bracket slots) could be verified without changing any behaviour.
 
+In version 0.2.0 the internals of `RoundRobinScheduler` and `SingleEliminationScheduler` were rewritten in smaller methods. The existing tests were run after each step **without being changed**, which shows that the behaviour is the same. New tests were only added for the new public methods, and for the deprecated `StandingsEntry.recordMatch()` to show that it still works.
+
 Beyond single cases, the scheduler tests check **properties** of the whole schedule. For example, the round-robin tests collect all pairings and check with a `Set` that there are no duplicates and that the count equals n(n-1)/2.
 
 The code examples in [README.md](README.md) were also run manually against the installed package, to check that the documented usage works.
 
-**Environment:** Node.js v24.7.0, macOS. Last run: 2026-09-30.
+**Environment:** Node.js v24.7.0, macOS. Last run: 2026-10-21 (version 0.2.0).
 
 ## Test Results
 
-**Totals:** 63 tests in 11 suites, **63 passed, 0 failed.**
+**Totals:** 71 tests in 12 suites, **71 passed, 0 failed.** (Version 0.1.0 had 63 tests.)
 
 | What was tested | How it was tested | Result |
 | --- | --- | --- |
@@ -38,6 +40,7 @@ The code examples in [README.md](README.md) were also run manually against the i
 | `Match.recordResult()` rejects invalid scores | Unit test: `-1` and `1.5` must throw `RangeError`. | ✅ Passed |
 | `Match.getWinner()` / `getLoser()` | Unit tests: for 3–1 the home participant wins, for 0–2 the away participant wins, and for 1–1 both return `null` and `isDraw()` is `true`. | ✅ Passed |
 | `Match` before it is played | Unit tests: `isDraw()` returns `false`, and `getWinner()` / `getLoser()` throw `Error`. | ✅ Passed |
+| `Match.getScoreFor()` / `getScoreAgainst()` (0.2.0) | Unit tests: after 3–1, the home participant has 3 for and 1 against, the away participant 1 for and 3 against. Both throw `Error` before the match is played and for a participant who is not in the match. | ✅ Passed |
 | `Round` stores number, matches and byes | Unit tests: the values given to the constructor are returned. Byes default to an empty array. | ✅ Passed |
 | `Round.isComplete()` | Unit test: two matches. `false` after one result, `true` after both. | ✅ Passed |
 | `Round` encapsulation | Unit test: pushing to the array from `getMatches()` does not change the round. | ✅ Passed |
@@ -56,7 +59,9 @@ The code examples in [README.md](README.md) were also run manually against the i
 | `SingleEliminationScheduler.createNextRound()` | Unit test with 6 participants (home side always wins): round 2 is 1–4 and 2–3 with no byes, and it is numbered 2. | ✅ Passed |
 | `SingleEliminationScheduler`: full bracket | Unit test with 8 participants: the rounds are played in a loop until one match remains. That is round 3, and the final is seed 1 vs seed 2. | ✅ Passed |
 | `SingleEliminationScheduler` invalid use | Unit tests: `Error` when there is no first round, when a match is unplayed, when a match is a draw, and when the final already exists. `RangeError` with fewer than two participants. | ✅ Passed |
-| `StandingsEntry` counting | Unit tests: a win, a draw and a loss are each counted correctly, and three matches accumulate played (3), scored (5), conceded (4), difference (+1) and points (4). | ✅ Passed |
+| `SingleEliminationScheduler.isComplete()` / `getChampion()` (0.2.0) | Unit tests: not complete and no champion before the first round, while earlier rounds remain, and while the final is unplayed or drawn. After a 0–3 final, complete with the away participant as champion. | ✅ Passed |
+| `StandingsEntry` counting | Unit tests with `addResult()`: a win, a draw and a loss are each counted correctly, and three matches accumulate played (3), scored (5), conceded (4), difference (+1) and points (4). | ✅ Passed |
+| Deprecated `StandingsEntry.recordMatch()` (0.2.0) | Unit test: `recordMatch(3, 1, 3)` still counts a win with 3 scored, 1 conceded and 3 points. | ✅ Passed |
 | `Standings` point system | Unit tests: the default is 3/1/0 (checked after a win and a draw), and `{ win: 2 }` gives 2 points for a win. | ✅ Passed |
 | `Standings` sorting | Unit tests, each built so that only one rule decides: points, then score difference, then total scored, then name alphabetically. | ✅ Passed |
 | `Standings.recordMatch()` rejects invalid matches | Unit test: an unplayed match throws `Error`. | ✅ Passed |
