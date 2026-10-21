@@ -29,6 +29,14 @@ Install directly from GitHub:
 npm install github:nordstrom-a/tournament-scheduler
 ```
 
+To lock your project to a released version, add the tag:
+
+```bash
+npm install github:nordstrom-a/tournament-scheduler#v0.2.0
+```
+
+An installed version is not updated automatically. Run `npm update tournament-scheduler` to get a newer one.
+
 ## Quick start
 
 ### Round-robin with a league table
@@ -85,22 +93,21 @@ const players = [
   new Participant('Filip')
 ]
 
-const scheduler = new SingleEliminationScheduler()
-let round = scheduler.createFirstRound(players)
-// Round 1: Dan vs Eva, Cia vs Filip. Anna and Bo (seeds 1 and 2) get byes.
-
-while (true) {
+function play(round) {
   for (const match of round.getMatches()) {
     match.recordResult(1, 0) // use your real results here
   }
-  if (round.getMatches().length === 1) {
-    break
-  }
-  round = scheduler.createNextRound()
 }
 
-const final = round.getMatches()[0]
-console.log(`Champion: ${final.getWinner().getName()}`)
+const scheduler = new SingleEliminationScheduler()
+play(scheduler.createFirstRound(players))
+// Round 1: Dan vs Eva, Cia vs Filip. Anna and Bo (seeds 1 and 2) get byes.
+
+while (!scheduler.isComplete()) {
+  play(scheduler.createNextRound())
+}
+
+console.log(`Champion: ${scheduler.getChampion().getName()}`)
 ```
 
 How the bracket is built:
@@ -133,6 +140,7 @@ All classes are exported from the package root.
 | `getHomeScore()` / `getAwayScore()` | The scores, or `null` if not played. |
 | `isDraw()` | `true` if played and the scores are equal. |
 | `getWinner()` / `getLoser()` | A `Participant`, or `null` for a draw. Throws if the match is not played. |
+| `getScoreFor(participant)` / `getScoreAgainst(participant)` | The score made by, or against, the given participant. Throws if the match is not played or the participant does not take part in it. |
 
 ### `Round`
 
@@ -157,6 +165,8 @@ One instance keeps track of one bracket.
 | --- | --- |
 | `createFirstRound(participants)` | Builds the bracket and returns round 1. Needs at least two participants. |
 | `createNextRound()` | Pairs the winners and bye participants of the current round. Throws if a match is unplayed or drawn, if no first round exists, or if the final has already been created. |
+| `isComplete()` | `true` when the final is played and has a winner. |
+| `getChampion()` | The winner of the final, or `null` if the bracket is not complete. |
 
 ### `Standings`
 
@@ -168,7 +178,12 @@ One instance keeps track of one bracket.
 
 ### `StandingsEntry`
 
-`getParticipant()`, `getPlayed()`, `getWins()`, `getDraws()`, `getLosses()`, `getScored()`, `getConceded()`, `getScoreDifference()`, `getPoints()`.
+Returned by `Standings.getEntries()`. Read it with `getParticipant()`, `getPlayed()`, `getWins()`, `getDraws()`, `getLosses()`, `getScored()`, `getConceded()`, `getScoreDifference()` and `getPoints()`. `getScored()` and `getConceded()` are totals over all matches.
+
+| Member | Description |
+| --- | --- |
+| `addResult(scored, conceded, earnedPoints)` | Adds one match from this participant's side. Used by `Standings`. You normally do not call it yourself. |
+| `recordMatch(scored, conceded, earnedPoints)` | **Deprecated** since 0.2.0, use `addResult`. It still works and does the same thing. It was renamed because `Standings.recordMatch(match)` has the same name but takes a whole match. |
 
 ## Running the tests
 
@@ -184,9 +199,24 @@ See [TEST_REPORT.md](TEST_REPORT.md) for what is tested and the latest results.
 
 Bug reports and ideas are welcome as [GitHub issues](https://github.com/nordstrom-a/tournament-scheduler/issues). Pull requests should include tests for new behaviour, and `npm test` should pass.
 
+## Changelog
+
+All changes are backward compatible. Code written for an earlier version keeps working.
+
+### 0.2.0
+
+- Added `SingleEliminationScheduler.isComplete()` and `getChampion()`, so you no longer have to detect the final yourself.
+- Added `Match.getScoreFor(participant)` and `getScoreAgainst(participant)`.
+- Added `StandingsEntry.addResult()`. `StandingsEntry.recordMatch()` is deprecated and delegates to it.
+- Internal clean-up without changed behaviour: the round-robin rotation no longer modifies its argument, pairing and byes are handled separately, and the first elimination round is built in smaller steps. The existing tests pass unchanged.
+
+### 0.1.0
+
+- First version: `Participant`, `Match`, `Round`, `RoundRobinScheduler`, `SingleEliminationScheduler`, `Standings` and `StandingsEntry`.
+
 ## Version
 
-0.1.0. The API may still change before 1.0.0.
+0.2.0. The API may still change before 1.0.0, but deprecated methods are kept until then.
 
 ## License
 
