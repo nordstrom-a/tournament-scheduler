@@ -89,11 +89,21 @@ export class StandingsEntry {
    * @param {number} conceded - Score made by the opponent in the match.
    * @param {number} earnedPoints - Table points awarded for the match.
    */
-  recordMatch(scored, conceded, earnedPoints) {
+  addResult(scored, conceded, earnedPoints) {
     this.#scored += scored
     this.#conceded += conceded
     this.#points += earnedPoints
     this.#countOutcome(scored, conceded)
+  }
+
+  /**
+   * @deprecated Use addResult instead. Kept so that existing code keeps working.
+   * @param {number} scored - Score made by this participant in the match.
+   * @param {number} conceded - Score made by the opponent in the match.
+   * @param {number} earnedPoints - Table points awarded for the match.
+   */
+  recordMatch(scored, conceded, earnedPoints) {
+    this.addResult(scored, conceded, earnedPoints)
   }
 
   #countOutcome(scored, conceded) {

@@ -62,7 +62,7 @@ export class Standings {
 
   #recordForParticipant(match, participant, scored, conceded) {
     const entry = this.#entries.get(participant)
-    entry.recordMatch(scored, conceded, this.#pointsFor(match, participant))
+    entry.addResult(scored, conceded, this.#pointsFor(match, participant))
   }
 
   #pointsFor(match, participant) {
