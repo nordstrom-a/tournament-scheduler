@@ -15,13 +15,13 @@ export class RoundRobinScheduler {
    */
   createRounds(participants) {
     this.#assertEnoughParticipants(participants)
-    const rotation = this.#createRotation(participants)
+    let rotation = this.#createRotation(participants)
     const roundCount = rotation.length - 1
     const rounds = []
 
-    for (let roundIndex = 0; roundIndex < roundCount; roundIndex++) {
-      rounds.push(this.#createRound(roundIndex + 1, rotation))
-      this.#rotate(rotation)
+    for (let roundNumber = 1; roundNumber <= roundCount; roundNumber++) {
+      rounds.push(this.#createRound(roundNumber, rotation))
+      rotation = this.#rotate(rotation)
     }
     return rounds
   }
@@ -35,28 +35,30 @@ export class RoundRobinScheduler {
   }
 
   #createRound(roundNumber, rotation) {
-    const matches = []
-    const participantsWithBye = []
-    const lastIndex = rotation.length - 1
-
-    for (let index = 0; index < rotation.length / 2; index++) {
-      const home = rotation[index]
-      const away = rotation[lastIndex - index]
-
-      if (home === null) {
-        participantsWithBye.push(away)
-      } else if (away === null) {
-        participantsWithBye.push(home)
-      } else {
-        matches.push(new Match(home, away))
-      }
-    }
+    const pairings = this.#pairUp(rotation)
+    const matches = pairings
+      .filter(pairing => !this.#isBye(pairing))
+      .map(([home, away]) => new Match(home, away))
+    const participantsWithBye = pairings
+      .filter(pairing => this.#isBye(pairing))
+      .map(pairing => pairing.find(participant => participant !== null))
     return new Round(roundNumber, matches, participantsWithBye)
   }
 
+  #pairUp(rotation) {
+    const lastIndex = rotation.length - 1
+    return rotation
+      .slice(0, rotation.length / 2)
+      .map((home, index) => [home, rotation[lastIndex - index]])
+  }
+
+  #isBye(pairing) {
+    return pairing.includes(null)
+  }
+
   #rotate(rotation) {
-    const last = rotation.pop()
-    rotation.splice(1, 0, last)
+    const [fixed, ...others] = rotation
+    return [fixed, others.at(-1), ...others.slice(0, -1)]
   }
 
   #assertEnoughParticipants(participants) {
