@@ -137,4 +137,41 @@ describe('SingleEliminationScheduler', () => {
       assert.throws(() => scheduler.createNextRound(), Error)
     })
   })
+
+  describe('isComplete and getChampion', () => {
+    it('is not complete and has no champion before the first round', () => {
+      const scheduler = new SingleEliminationScheduler()
+
+      assert.equal(scheduler.isComplete(), false)
+      assert.equal(scheduler.getChampion(), null)
+    })
+
+    it('is not complete while rounds before the final remain', () => {
+      const scheduler = new SingleEliminationScheduler()
+      letHomeParticipantsWin(scheduler.createFirstRound(createSeededParticipants(4)))
+
+      assert.equal(scheduler.isComplete(), false)
+      assert.equal(scheduler.getChampion(), null)
+    })
+
+    it('is not complete while the final is unplayed or drawn', () => {
+      const scheduler = new SingleEliminationScheduler()
+      const final = scheduler.createFirstRound(createSeededParticipants(2)).getMatches()[0]
+
+      assert.equal(scheduler.isComplete(), false)
+      final.recordResult(2, 2)
+      assert.equal(scheduler.isComplete(), false)
+      assert.equal(scheduler.getChampion(), null)
+    })
+
+    it('returns the winner of the final as champion', () => {
+      const scheduler = new SingleEliminationScheduler()
+      letHomeParticipantsWin(scheduler.createFirstRound(createSeededParticipants(4)))
+      const final = scheduler.createNextRound().getMatches()[0]
+      final.recordResult(0, 3)
+
+      assert.equal(scheduler.isComplete(), true)
+      assert.equal(scheduler.getChampion(), final.getAwayParticipant())
+    })
+  })
 })

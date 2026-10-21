@@ -17,15 +17,7 @@ export class SingleEliminationScheduler {
    */
   createFirstRound(participants) {
     this.#assertEnoughParticipants(participants)
-    const orderedParticipants = this.#orderBySeed(participants)
-    const seedOrder = this.#createSeedOrder(this.#calculateBracketSize(participants.length))
-    this.#slots = []
-
-    for (let index = 0; index < seedOrder.length; index += 2) {
-      const home = orderedParticipants[seedOrder[index] - 1]
-      const away = orderedParticipants[seedOrder[index + 1] - 1]
-      this.#slots.push(away === undefined ? home : new Match(home, away))
-    }
+    this.#slots = this.#createFirstRoundSlots(this.#orderBySeed(participants))
     this.#roundNumber = 1
     return this.#createRoundFromSlots()
   }
@@ -49,11 +41,58 @@ export class SingleEliminationScheduler {
     return this.#createRoundFromSlots()
   }
 
+  /**
+   * @returns {boolean} True if the final has been played and has a winner.
+   */
+  isComplete() {
+    if (!this.#isFinalCreated()) {
+      return false
+    }
+    const [final] = this.#slots
+    return final.isPlayed() && !final.isDraw()
+  }
+
+  /**
+   * @returns {Participant|null} The winner of the final, or null if the bracket is not complete.
+   */
+  getChampion() {
+    if (!this.isComplete()) {
+      return null
+    }
+    const [final] = this.#slots
+    return final.getWinner()
+  }
+
+  #createFirstRoundSlots(orderedParticipants) {
+    const seedOrder = this.#createSeedOrder(this.#calculateBracketSize(orderedParticipants.length))
+    const slots = []
+    for (let index = 0; index < seedOrder.length; index += 2) {
+      const home = this.#participantWithSeed(orderedParticipants, seedOrder[index])
+      const away = this.#participantWithSeed(orderedParticipants, seedOrder[index + 1])
+      slots.push(this.#createSlot(home, away))
+    }
+    return slots
+  }
+
+  #participantWithSeed(orderedParticipants, seed) {
+    const index = seed - 1
+    return orderedParticipants[index]
+  }
+
+  #createSlot(home, away) {
+    const awayIsMissing = away === undefined
+    return awayIsMissing ? home : new Match(home, away)
+  }
+
+  #isFinalCreated() {
+    return this.#roundNumber > 0 && this.#slots.length === 1
+  }
+
   #assertCanCreateNextRound() {
     if (this.#roundNumber === 0) {
       throw new Error('The first round must be created before the next one')
     }
-    if (this.#slots.length === 1) {
+    if (this.#isFinalCreated()) {
       throw new Error('The final has already been created')
     }
   }
