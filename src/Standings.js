@@ -35,8 +35,8 @@ export class Standings {
    */
   recordMatch(match) {
     this.#assertRecordable(match)
-    this.#recordForParticipant(match, match.getHomeParticipant(), match.getHomeScore(), match.getAwayScore())
-    this.#recordForParticipant(match, match.getAwayParticipant(), match.getAwayScore(), match.getHomeScore())
+    this.#recordForParticipant(match, match.getHomeParticipant())
+    this.#recordForParticipant(match, match.getAwayParticipant())
   }
 
   /**
@@ -60,9 +60,9 @@ export class Standings {
     }
   }
 
-  #recordForParticipant(match, participant, scored, conceded) {
+  #recordForParticipant(match, participant) {
     const entry = this.#entries.get(participant)
-    entry.addResult(scored, conceded, this.#pointsFor(match, participant))
+    entry.addResult(match.getScoreFor(participant), match.getScoreAgainst(participant), this.#pointsFor(match, participant))
   }
 
   #pointsFor(match, participant) {

@@ -103,6 +103,28 @@ export class Match {
     return winner === this.#homeParticipant ? this.#awayParticipant : this.#homeParticipant
   }
 
+  /**
+   * @param {Participant} participant - The home or the away participant.
+   * @returns {number} The score made by the participant.
+   * @throws {Error} If the match has not been played or the participant does not take part in it.
+   */
+  getScoreFor(participant) {
+    this.#assertPlayed()
+    this.#assertTakesPart(participant)
+    return participant === this.#homeParticipant ? this.#homeScore : this.#awayScore
+  }
+
+  /**
+   * @param {Participant} participant - The home or the away participant.
+   * @returns {number} The score made by the participant's opponent.
+   * @throws {Error} If the match has not been played or the participant does not take part in it.
+   */
+  getScoreAgainst(participant) {
+    this.#assertTakesPart(participant)
+    const opponent = participant === this.#homeParticipant ? this.#awayParticipant : this.#homeParticipant
+    return this.getScoreFor(opponent)
+  }
+
   #assertIsParticipant(participant) {
     if (!(participant instanceof Participant)) {
       throw new TypeError('Match requires two Participant instances')
@@ -124,6 +146,12 @@ export class Match {
   #assertPlayed() {
     if (!this.isPlayed()) {
       throw new Error('Match has not been played yet')
+    }
+  }
+
+  #assertTakesPart(participant) {
+    if (participant !== this.#homeParticipant && participant !== this.#awayParticipant) {
+      throw new Error('The participant does not take part in this match')
     }
   }
 }

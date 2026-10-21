@@ -102,4 +102,30 @@ describe('Match', () => {
     assert.throws(() => match.getWinner(), Error)
     assert.throws(() => match.getLoser(), Error)
   })
+
+  it('returns the score for and against each participant', () => {
+    const match = new Match(aik, ifk)
+    match.recordResult(3, 1)
+
+    assert.equal(match.getScoreFor(aik), 3)
+    assert.equal(match.getScoreAgainst(aik), 1)
+    assert.equal(match.getScoreFor(ifk), 1)
+    assert.equal(match.getScoreAgainst(ifk), 3)
+  })
+
+  it('throws when asking for a score before the match has been played', () => {
+    const match = new Match(aik, ifk)
+
+    assert.throws(() => match.getScoreFor(aik), Error)
+    assert.throws(() => match.getScoreAgainst(aik), Error)
+  })
+
+  it('throws when asking for the score of a participant not in the match', () => {
+    const match = new Match(aik, ifk)
+    match.recordResult(3, 1)
+    const outsider = new Participant('MFF')
+
+    assert.throws(() => match.getScoreFor(outsider), Error)
+    assert.throws(() => match.getScoreAgainst(outsider), Error)
+  })
 })
