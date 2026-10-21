@@ -1,4 +1,4 @@
-import { Participant } from './Participant.js'
+/** @typedef {import('./Participant.js').Participant} Participant */
 
 /**
  * One participant's row in the standings table.

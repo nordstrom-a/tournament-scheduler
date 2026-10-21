@@ -1,5 +1,5 @@
-import { Match } from './Match.js'
-import { Participant } from './Participant.js'
+/** @typedef {import('./Match.js').Match} Match */
+/** @typedef {import('./Participant.js').Participant} Participant */
 
 /**
  * A group of matches played in the same stage of a tournament.

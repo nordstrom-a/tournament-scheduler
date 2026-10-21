@@ -1,6 +1,7 @@
 import { Match } from './Match.js'
-import { Participant } from './Participant.js'
 import { Round } from './Round.js'
+
+/** @typedef {import('./Participant.js').Participant} Participant */
 
 /**
  * Creates a schedule where every participant meets every other participant once, using the circle method.

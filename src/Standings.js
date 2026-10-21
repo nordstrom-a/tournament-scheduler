@@ -1,6 +1,7 @@
-import { Match } from './Match.js'
-import { Participant } from './Participant.js'
 import { StandingsEntry } from './StandingsEntry.js'
+
+/** @typedef {import('./Match.js').Match} Match */
+/** @typedef {import('./Participant.js').Participant} Participant */
 
 /**
  * A league table built from played matches.
